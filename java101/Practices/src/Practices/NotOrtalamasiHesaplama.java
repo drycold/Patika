@@ -1,11 +1,18 @@
-public class NotOrtalamasıHesaplama {
+package Practices;
+import java.util.Scanner;
+
+public class NotOrtalamasiHesaplama {
     public static void main(String[] args) {
 
         // Değişkenleri tanımla
         int mat, fizik, kimya, turkce, tarih, muzik;
 
+        // Ortalama ve sonuç değişkenlerini tanımla
+        double ortalama;
+        String sonuc;
+
         // Kullanıcıdan notları al
-        java.util.Scanner inp = new java.util.Scanner(System.in);
+        Scanner inp = new Scanner(System.in);
 
         System.out.print("Matematik Notunuz : ");
         mat = inp.nextInt();
@@ -26,10 +33,11 @@ public class NotOrtalamasıHesaplama {
         muzik = inp.nextInt();
 
         // Ortalama hesapla
-        double ortalama = (mat + fizik + kimya + turkce + tarih + muzik) / 6.0;
+        ortalama = (mat + fizik + kimya + turkce + tarih + muzik) / 6.0;
 
         // Sonucu belirle
-        String sonuc = ortalama >= 60 ? "Sınıfı Geçti" : "Sınıfta Kaldı";
+        sonuc = ortalama >= 60 ? "Sınıfı Geçti" : "Sınıfta Kaldı";
+        
 
         // Sonuçları yazdır
         System.out.println("Ortalamanız : " + ortalama);
