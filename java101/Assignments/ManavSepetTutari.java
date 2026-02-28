@@ -1,7 +1,7 @@
 
 import java.util.Scanner;
 
-public class ManavSepetTutarı {
+public class ManavSepetTutari {
     public static void main(String[] args) {
 
         // Değişkenleri tanımla
