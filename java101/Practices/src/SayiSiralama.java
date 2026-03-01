@@ -19,23 +19,23 @@ public class SayiSiralama {
         c = inp.nextInt();
 
         // Sayıları sırala ve ekrana yazdır
-        if (a < b && a < c) {
-            if (b < c) {
-                System.out.println("Sıralama: " + a + " < " + b + " < " + c);
+        if (a > b && a > c) {
+            if (b > c) {
+                System.out.println("Sayıların sıralaması: " + a + " > " + b + " > " + c);
             } else {
-                System.out.println("Sıralama: " + a + " < " + c + " < " + b);
+                System.out.println("Sayıların sıralaması: " + a + " > " + c + " > " + b);
             }
-        } else if (b < a && b < c) {
-            if (a < c) {
-                System.out.println("Sıralama: " + b + " < " + a + " < " + c);
+        } else if (b > a && b > c) {
+            if (a > c) {
+                System.out.println("Sayıların sıralaması: " + b + " > " + a + " > " + c);
             } else {
-                System.out.println("Sıralama: " + b + " < " + c + " < " + a);
+                System.out.println("Sayıların sıralaması: " + b + " > " + c + " > " + a);
             }
         } else {
-            if (a < b) {
-                System.out.println("Sıralama: " + c + " < " + a + " < " + b);
+            if (a > b) {
+                System.out.println("Sayıların sıralaması: " + c + " > " + a + " > " + b);
             } else {
-                System.out.println("Sıralama: " + c + " < " + b + " < " + a);
+                System.out.println("Sayıların sıralaması: " + c + " > " + b + " > " + a);
             }
         }
     }
