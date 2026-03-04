@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class SayininKuvveti {
+public class Kuvvet {
     public static void main(String[] args) {
         
         // Değişkenleri tanımla
