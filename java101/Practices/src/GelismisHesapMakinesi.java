@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class GelişmişHesapMakinesi {
+public class GelismisHesapMakinesi {
     public static void main(String[] args) {
         
         // Değişkenleri tanımla
