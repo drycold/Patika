@@ -1,15 +1,9 @@
-import java.util.Scanner;
 
 public class AsalSayilar {
     public static void main(String[] args) {
         
         // Değişkenleri tanımla
-        int n;
-
-        // Kullanıcıdan sayı bilgisini al
-        Scanner inp = new Scanner(System.in);
-        System.out.print("Sayı giriniz: ");
-        n = inp.nextInt();
+        int n = 100;
 
         // Asal sayıları bulma ve ekrana yazdırma
         System.out.println("Asal sayılar: ");
