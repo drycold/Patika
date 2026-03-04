@@ -23,21 +23,22 @@ public class Atm {
 
                 // Kullanıcı doğru giriş yaptıktan sonra işlemler menüsünü göster
                 do {
-                    System.out.println("1- Para yatırma\n" +
-                                       "2- Para çekme\n" +
-                                       "3- Bakiye sorgulama\n" +
-                                       "4- Çıkış yap");
+                    System.out.println("""
+                                       1- Para yat\u0131rma
+                                       2- Para \u00e7ekme
+                                       3- Bakiye sorgulama
+                                       4- \u00c7\u0131k\u0131\u015f yap""");
                     System.out.print("Lütfen yapmak istediğiniz işlemi seçiniz: ");
                     secim = inp.nextInt();
 
                     // İşlem seçimine göre ilgili işlemi gerçekleştir
                     switch (secim) {
-                        case 1:
+                        case 1 -> {
                             System.out.print("Yatırmak istediğiniz tutarı giriniz: ");
                             double yatirilanTutar = inp.nextDouble();
                             balance += yatirilanTutar;
-                            break;
-                        case 2:
+                        }
+                        case 2 -> {
                             System.out.print("Çekmek istediğiniz tutarı giriniz: ");
                             double cekilenTutar = inp.nextDouble();
                             if (cekilenTutar > balance) {
@@ -45,15 +46,10 @@ public class Atm {
                             } else {
                                 balance -= cekilenTutar;
                             }
-                            break;
-                        case 3:
-                            System.out.println("Bakiyeniz: " + balance);
-                            break;
-                        case 4:
-                            System.out.println("Çıkış yapılıyor...");
-                            break;
-                        default:
-                            System.out.println("Geçersiz seçim, lütfen tekrar deneyiniz.");
+                        }
+                        case 3 -> System.out.println("Bakiyeniz: " + balance);
+                        case 4 -> System.out.println("Çıkış yapılıyor...");
+                        default -> System.out.println("Geçersiz seçim, lütfen tekrar deneyiniz.");
                     }
                 } while (secim != 4);
                 break;
