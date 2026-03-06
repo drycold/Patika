@@ -16,17 +16,22 @@ public class Ring {
         if (checkWeight()) {
             while (fighter1.health > 0 && fighter2.health > 0) {
                 System.out.println("======== YENİ ROUND ===========");
-                fighter2.health = fighter1.hit(fighter2);
-                if (isWin()) {
-                    break;
+                if (Math.random() < 0.5) {
+                    fighter2.health = fighter1.hit(fighter2);
+                    if (isWin()) {
+                        break;
+                    }
+                } else {
+                    fighter1.health = fighter2.hit(fighter1);
+                    if (isWin()) {
+                        break;
+                    }
                 }
-                fighter1.health = fighter2.hit(fighter1);
-                if (isWin()) {
-                    break;
-                }
+                
                 System.out.println(fighter1.name + " Kalan Can \t:" + fighter1.health);
                 System.out.println(fighter2.name + " Kalan Can \t:" + fighter2.health);
             }
+
         } else {
             System.out.println("Sporcuların ağırlıkları uyuşmuyor.");
         }
