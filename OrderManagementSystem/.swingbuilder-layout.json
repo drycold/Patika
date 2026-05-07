@@ -1,0 +1,58 @@
+{
+  "className": "MainWindow",
+  "frameTitle": "MainWindow",
+  "frameWidth": 800,
+  "frameHeight": 600,
+  "components": [
+    {
+      "id": "1cbd6c49-3932-4193-aaba-d49f9a7e27a4",
+      "type": "Button",
+      "variableName": "button1",
+      "x": 211,
+      "y": 355,
+      "width": 120,
+      "height": 36,
+      "backgroundColor": "#ffffff",
+      "textColor": "#000000",
+      "fontFamily": "Arial",
+      "fontSize": 12,
+      "eventMethodName": "",
+      "text": "Button"
+    },
+    {
+      "id": "930bcf54-906b-4cfb-bc3d-05604a43707e",
+      "type": "Panel",
+      "variableName": "panel2",
+      "x": 141,
+      "y": 136,
+      "width": 200,
+      "height": 150,
+      "backgroundColor": "#ffffff",
+      "textColor": "#000000",
+      "fontFamily": "Arial",
+      "fontSize": 12,
+      "eventMethodName": "",
+      "text": "Panel"
+    },
+    {
+      "id": "4511cab1-2c85-4112-b409-588f80a4923f",
+      "type": "TextField",
+      "variableName": "textField3",
+      "x": 179,
+      "y": 188,
+      "width": 180,
+      "height": 36,
+      "backgroundColor": "#ffffff",
+      "textColor": "#000000",
+      "fontFamily": "Arial",
+      "fontSize": 12,
+      "eventMethodName": "",
+      "text": "TextField",
+      "parentId": "930bcf54-906b-4cfb-bc3d-05604a43707e",
+      "parentOffset": {
+        "x": 38,
+        "y": 52
+      }
+    }
+  ]
+}
