@@ -1,17 +1,40 @@
 package view;
 
+import business.CustomerController;
 import core.Helper;
+import entity.Customer;
 import entity.User;
-
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class DashboardUI extends JFrame {
     private JPanel container;
+    private JLabel lbl_welcome;
+    private JButton btn_logout;
+    private JTabbedPane tab_menu;
+    private JPanel pnl_customer;
+    private JScrollPane scrl_customer;
+    private JTable tbl_customer;
+    private JPanel pnl_customer_filter;
+    private JTextField fld_f_customer_name;
+    private JComboBox cmb_customer_type;
+    private JButton btn_customer_filter;
+    private JButton btn_customer_filter_reset;
+    private JButton btn_customer_new;
+    private JLabel lbl_f_customer_name;
+    private JLabel lbl_f_customer_type;
     private User user;
+    private CustomerController customerController;
+    private DefaultTableModel tmdl_customer = new DefaultTableModel(); 
+    private JPopupMenu popup_customer = new JPopupMenu();
 
     public DashboardUI( User user){
         this.user = user;
+        this.customerController = new CustomerController();
         if (user == null){
             Helper.showMessage("error");
             dispose();
@@ -28,6 +51,60 @@ public class DashboardUI extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
 
-        System.out.println(this.user.toString());
+        this.lbl_welcome.setText("Hoşgeldin : " + this.user.getName());
+
+        this.btn_logout.addActionListener(e -> {
+            dispose();
+            LoginUI loginUI = new LoginUI();
+        });
+
+        loadCustomerTable(null);
+        loadCustomerPopupMenu();
+    }
+
+    private void loadCustomerPopupMenu(){
+
+        this.tbl_customer.addMouseListener(new MouseAdapter() {
+             @Override
+             public void mousePressed(MouseEvent e) {
+                 if (e.isPopupTrigger()) {
+                     int selectedRow = tbl_customer.rowAtPoint(e.getPoint());
+                     tbl_customer.setRowSelectionAllowed(true);
+                     tbl_customer.setRowSelectionInterval(selectedRow, selectedRow);
+                 }
+             }  
+        });
+
+        this.popup_customer.add("Güncelle").addActionListener(e -> {
+            int selectedId = Integer.parseInt(this.tbl_customer.getValueAt(this.tbl_customer.getSelectedRow(), 0).toString());
+            System.out.println("güncellendi");
+        });
+        this.popup_customer.add("Sil").addActionListener(e -> {
+            System.out.println("silindi");
+        });
+
+        this.tbl_customer.setComponentPopupMenu(this.popup_customer);
+    }
+
+    private void loadCustomerTable(ArrayList<Customer> customers){
+        Object[] colNames = {"ID", "Ad Soyad", "Müşteri Tipi", "Telefon", "Email", "Adres"};
+
+        if (customers == null) {
+            customers = this.customerController.findAll();
+        }
+
+        DefaultTableModel clearModel = (DefaultTableModel) this.tbl_customer.getModel();
+        clearModel.setRowCount(0);
+
+        this.tmdl_customer.setColumnIdentifiers(colNames);
+
+        for (Customer customer : customers) {
+            Object[] rowObjects = {customer.getId(), customer.getName(), customer.getType(), customer.getPhone(), customer.getMail(), customer.getAddress()};
+            this.tmdl_customer.addRow(rowObjects);
+        }
+        this.tbl_customer.setModel(this.tmdl_customer);
+        this.tbl_customer.getTableHeader().setReorderingAllowed(false);
+        this.tbl_customer.getColumnModel().getColumn(0).setMaxWidth(50);
+        this.tbl_customer.setEnabled(true);
     }
 }
