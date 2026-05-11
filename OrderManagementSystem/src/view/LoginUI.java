@@ -6,6 +6,10 @@ import entity.User;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Uygulama için giriş ekranını sağlayan JFrame sınıfı.
+ * Kullanıcı e-posta ve parola ile giriş yapar.
+ */
 public class LoginUI extends JFrame {
 
     private JPanel container;
@@ -19,10 +23,14 @@ public class LoginUI extends JFrame {
     private JButton btn_login;
     private UserController userController;
 
+    /**
+     * LoginUI yapıcı metodu. Bileşenleri ayarlar ve oturum açma düğmesine dinleyici bağlar.
+     */
     public LoginUI() {
 
         this.userController = new UserController();
-        
+
+        // Formu penceresine ekler ve temel pencere ayarlarını yapar.
         this.add(container);
         this.setTitle("Müşteri yönetim Sistemi");
         this.setSize(400, 400);
@@ -34,19 +42,24 @@ public class LoginUI extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
 
+        // Giriş butonuna tıklanıldığında çalışacak işlem.
         this.btn_login.addActionListener(e -> {
             JTextField[] checkList = {this.fld_password, this.fld_mail};
+
+            // Zorunlu alanların dolu olup olmadığını kontrol eder.
             if (Helper.isFieldListEmpty(checkList)) {
                 Helper.showMessage("fill");
             } else if (!Helper.isEmailValid(this.fld_mail)) {
                 Helper.showMessage("Lütfen geçerli bir email adresi giriniz");
             } else {
+                // Kullanıcıyı veritabanında arar.
                 User user = this.userController.findByLogin(this.fld_mail.getText(), this.fld_password.getText());
                 if (user == null) {
                     Helper.showMessage("Kullanıcı bulunamadı");
                 } else {
+                    // Giriş başarılıysa giriş ekranını kapatır ve paneli açar.
                     this.dispose();
-                    DashboardUI dashboardUI = new DashboardUI(user);
+                    new DashboardUI(user);
                 }
             }
         });

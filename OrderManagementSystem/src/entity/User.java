@@ -1,11 +1,17 @@
 package entity;
 
+/**
+ * Kullanıcı varlık sınıfı. Uygulamada oturum açma bilgilerini taşır.
+ */
 public class User {
     private int id;
     private String name;
     private String mail;
     private String password;
 
+    /**
+     * Varsayılan yapıcı metot. Boş bir kullanıcı nesnesi oluşturur.
+     */
     public User() {
 
     }

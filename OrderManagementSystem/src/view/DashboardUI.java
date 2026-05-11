@@ -7,10 +7,17 @@ import entity.User;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * Dashboard ekranını sağlayan JFrame sınıfı.
+ * Bu ekran, kullanıcının giriş yaptıktan sonra müşteri kayıtlarını görmesini,
+ * eklemesini, güncellemesini ve silmesini sağlar.
+ */
 public class DashboardUI extends JFrame {
     private JPanel container;
     private JLabel lbl_welcome;
@@ -28,14 +35,20 @@ public class DashboardUI extends JFrame {
     private JLabel lbl_f_customer_name;
     private JLabel lbl_f_customer_type;
     private User user;
-    private CustomerController customerController;
-    private DefaultTableModel tmdl_customer = new DefaultTableModel(); 
-    private JPopupMenu popup_customer = new JPopupMenu();
+    private final CustomerController customerController;
+    private final DefaultTableModel tmdl_customer = new DefaultTableModel();
+    private final JPopupMenu popup_customer = new JPopupMenu();
 
-    public DashboardUI( User user){
+    /**
+     * Dashboard UI yapıcı metodu.
+     *
+     * @param user Giriş yapan kullanıcı nesnesi.
+     */
+    public DashboardUI(User user) {
         this.user = user;
         this.customerController = new CustomerController();
-        if (user == null){
+        if (user == null) {
+            // Kullanıcı bilgisi yoksa hata gösterir ve pencereyi kapatır.
             Helper.showMessage("error");
             dispose();
         }
@@ -53,40 +66,86 @@ public class DashboardUI extends JFrame {
 
         this.lbl_welcome.setText("Hoşgeldin : " + this.user.getName());
 
+        // Çıkış butonuna tıklanınca login ekranına geri döner.
         this.btn_logout.addActionListener(e -> {
             dispose();
-            LoginUI loginUI = new LoginUI();
+            new LoginUI();
         });
 
+        // Tabloyu doldurur ve popup menu ile yeni müşteri ekleme işlemini hazırlar.
         loadCustomerTable(null);
         loadCustomerPopupMenu();
+        loadCustomerButtonEvent();
+
     }
 
-    private void loadCustomerPopupMenu(){
+    /**
+     * Yeni müşteri ekleme butonuna tıklama işlemini ayarlar.
+     */
+    private void loadCustomerButtonEvent() {
+        this.btn_customer_new.addActionListener(e -> {
+            CustomerUI customerUI = new CustomerUI(new Customer());
+            customerUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent windowEvent) {
+                    // Müşteri ekleme penceresi kapandığında tabloyu yeniler.
+                    loadCustomerTable(null);
+                }
+            });
+
+        });
+    }
+
+    /**
+     * Müşteri tablosu için sağ tıklama popup menüsünü hazırlar.
+     */
+    private void loadCustomerPopupMenu() {
 
         this.tbl_customer.addMouseListener(new MouseAdapter() {
-             @Override
-             public void mousePressed(MouseEvent e) {
-                 if (e.isPopupTrigger()) {
-                     int selectedRow = tbl_customer.rowAtPoint(e.getPoint());
-                     tbl_customer.setRowSelectionAllowed(true);
-                     tbl_customer.setRowSelectionInterval(selectedRow, selectedRow);
-                 }
-             }  
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int selectedRow = tbl_customer.rowAtPoint(e.getPoint());
+                    tbl_customer.setRowSelectionAllowed(true);
+                    tbl_customer.setRowSelectionInterval(selectedRow, selectedRow);
+                }
+            }
         });
 
         this.popup_customer.add("Güncelle").addActionListener(e -> {
             int selectedId = Integer.parseInt(this.tbl_customer.getValueAt(this.tbl_customer.getSelectedRow(), 0).toString());
-            System.out.println("güncellendi");
+            Customer editedCustomer = this.customerController.getById(selectedId);
+            CustomerUI customerUI = new CustomerUI(editedCustomer);
+            customerUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent windowEvent) {
+                    loadCustomerTable(null);
+                }
+            });
         });
+        
         this.popup_customer.add("Sil").addActionListener(e -> {
-            System.out.println("silindi");
+            int selectedId = Integer.parseInt(this.tbl_customer.getValueAt(this.tbl_customer.getSelectedRow(), 0).toString());
+            if (Helper.confirm("sure")){
+                if (this.customerController.delete(selectedId)) {
+                    Helper.showMessage("done");
+                    loadCustomerTable(null);
+                } else {
+                    Helper.showMessage("error");
+                }
+            }
+            
         });
 
         this.tbl_customer.setComponentPopupMenu(this.popup_customer);
     }
 
-    private void loadCustomerTable(ArrayList<Customer> customers){
+    /**
+     * Müşteri tablosunu doldurur.
+     *
+     * @param customers Önceden filtrelenmiş müşteri listesi, null ise tüm müşteriler gösterilir.
+     */
+    private void loadCustomerTable(ArrayList<Customer> customers) {
         Object[] colNames = {"ID", "Ad Soyad", "Müşteri Tipi", "Telefon", "Email", "Adres"};
 
         if (customers == null) {
@@ -107,4 +166,6 @@ public class DashboardUI extends JFrame {
         this.tbl_customer.getColumnModel().getColumn(0).setMaxWidth(50);
         this.tbl_customer.setEnabled(true);
     }
+
+
 }
