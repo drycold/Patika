@@ -73,4 +73,35 @@ public class CustomerController {
         }
         return this.customerDao.delete(id);
     }
+
+    /**
+     * Müşteri adı ve tipi kullanarak müşterileri filtreler.
+     * WHERE koşullarıyla özel SQL sorgusu oluşturur ve sonuç döndürür.
+     *
+     * @param name Filtrelenecek müşteri adı (kısmi eşleşme), boş string göz ardı edilir.
+     * @param type Filtrelenecek müşteri tipi (PERSON veya COMPANY), null göz ardı edilir.
+     * @return Filtre kriterlerine uyan müşteri listesi.
+     */
+    public ArrayList<Customer> filter(String name, Customer.TYPE type) {
+        // Temel SELECT sorgusu oluşturur.
+        String query = "SELECT * FROM customer";
+
+        // Filtre kriterlerini tutacak liste.
+        ArrayList<String> whereList = new ArrayList<>();
+
+        // Adı verilmişse LIKE operatörüyle kısmi eşleşme ekler.
+        if (name.length() > 0) {
+            whereList.add("name LIKE '%" + name + "%'");
+        }
+        // Tipi verilmişse WHERE koşuluna ekler.
+        if (type != null) {
+            whereList.add("type = '" + type + "'");
+        }
+        // Eğer kriterler varsa WHERE cümlesi oluşturur.
+        if (!whereList.isEmpty()) {
+            String whereQuery = String.join(" AND ", whereList);
+            query += " WHERE " + whereQuery;
+        }
+        return this.customerDao.query(query);
+    }
 }

@@ -5,10 +5,7 @@ import core.Helper;
 import entity.Customer;
 import entity.User;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -28,7 +25,7 @@ public class DashboardUI extends JFrame {
     private JTable tbl_customer;
     private JPanel pnl_customer_filter;
     private JTextField fld_f_customer_name;
-    private JComboBox cmb_customer_type;
+    private JComboBox cmb_f_customer_type;
     private JButton btn_customer_filter;
     private JButton btn_customer_filter_reset;
     private JButton btn_customer_new;
@@ -76,6 +73,8 @@ public class DashboardUI extends JFrame {
         loadCustomerTable(null);
         loadCustomerPopupMenu();
         loadCustomerButtonEvent();
+        this.cmb_f_customer_type.setModel(new DefaultComboBoxModel<>(Customer.TYPE.values()));
+        this.cmb_f_customer_type.setSelectedItem(null);
 
     }
 
@@ -94,6 +93,22 @@ public class DashboardUI extends JFrame {
             });
 
         });
+
+        this.btn_customer_filter.addActionListener(e -> {
+            ArrayList<Customer> filteredCustomers = this.customerController.filter(
+                    this.fld_f_customer_name.getText(),
+                    (Customer.TYPE) this.cmb_f_customer_type.getSelectedItem()
+            );
+            loadCustomerTable(filteredCustomers);
+        });
+
+        btn_customer_filter_reset.addActionListener(e -> {
+            loadCustomerTable(null);          
+            this.fld_f_customer_name.setText(null);
+            this.cmb_f_customer_type.setSelectedItem(null);
+
+        });
+
     }
 
     /**
@@ -164,6 +179,7 @@ public class DashboardUI extends JFrame {
         this.tbl_customer.setModel(this.tmdl_customer);
         this.tbl_customer.getTableHeader().setReorderingAllowed(false);
         this.tbl_customer.getColumnModel().getColumn(0).setMaxWidth(50);
+        // Tabloyu etkin bırak böylece sağ tıklama popup menüsü çalışabilsin.
         this.tbl_customer.setEnabled(true);
     }
 

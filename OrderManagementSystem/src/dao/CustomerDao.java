@@ -131,6 +131,27 @@ public class CustomerDao {
     }
 
     /**
+     * Özel bir SQL sorgusu çalıştırarak müşteri listesi getirir.
+     * Bu metot filtreleme ve gelişmiş sorgu işlemleri için kullanılır.
+     *
+     * @param query Çalıştırılacak SQL SELECT sorgusu.
+     * @return Sorgu sonucuna göre oluşturulan müşteri listesi.
+     */
+    public ArrayList<Customer> query(String query){
+        ArrayList<Customer> customers = new ArrayList<>();
+        try {
+            ResultSet rs = this.connection.createStatement().executeQuery(query);
+            while (rs.next()){
+                customers.add(match(rs));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
+
+    /**
      * ResultSet satırını Customer nesnesine dönüştürür.
      *
      * @param rs Veritabanından dönen ResultSet.
