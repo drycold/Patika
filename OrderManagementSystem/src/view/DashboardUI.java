@@ -1,8 +1,11 @@
 package view;
 
 import business.CustomerController;
+import business.ProductController;
 import core.Helper;
+import core.Item;
 import entity.Customer;
+import entity.Product;
 import entity.User;
 import java.awt.*;
 import java.awt.event.*;
@@ -31,10 +34,26 @@ public class DashboardUI extends JFrame {
     private JButton btn_customer_new;
     private JLabel lbl_f_customer_name;
     private JLabel lbl_f_customer_type;
+    private JPanel pnl_product;
+    private JScrollPane scrl_product;
+    private JTable tbl_product;
+    private JPanel pnl_product_filter;
+    private JTextField fld_f_product_name;
+    private JTextField fld_f_product_code;
+    private JComboBox<Item> cmb_f_product_stock;
+    private JButton btn_product_filter;
+    private JButton btn_product_filter_reset;
+    private JButton btn_product_new;
+    private JLabel lbl_f_product_name;
+    private JLabel lnl_f_product_code;
+    private JLabel lbl_f_product_stock;
     private User user;
     private final CustomerController customerController;
+    private final ProductController productController;
     private final DefaultTableModel tmdl_customer = new DefaultTableModel();
+    private final DefaultTableModel tmdl_product = new DefaultTableModel();
     private final JPopupMenu popup_customer = new JPopupMenu();
+    private final JPopupMenu popup_product = new JPopupMenu();
 
     /**
      * Dashboard UI yapıcı metodu.
@@ -44,6 +63,7 @@ public class DashboardUI extends JFrame {
     public DashboardUI(User user) {
         this.user = user;
         this.customerController = new CustomerController();
+        this.productController = new ProductController();
         if (user == null) {
             // Kullanıcı bilgisi yoksa hata gösterir ve pencereyi kapatır.
             Helper.showMessage("error");
@@ -76,6 +96,115 @@ public class DashboardUI extends JFrame {
         this.cmb_f_customer_type.setModel(new DefaultComboBoxModel<>(Customer.TYPE.values()));
         this.cmb_f_customer_type.setSelectedItem(null);
 
+        loadProductTable(null);
+        loadProductPopupMenu();
+        loadProductButtonEvent();
+        // Ürün stok filtresi için combo box öğelerini ekler
+        this.cmb_f_product_stock.addItem(new Item(1, "Stokta var"));
+        this.cmb_f_product_stock.addItem(new Item(2, "Stokta yok"));
+        this.cmb_f_product_stock.setSelectedItem(null);
+
+    }
+
+    private void loadProductButtonEvent() {
+        // Yeni ürün ekleme butonu olayı
+        this.btn_product_new.addActionListener(e -> {
+            ProductUI productUI = new ProductUI(new Product());
+            productUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent windowEvent) {
+                    // Ürün ekleme penceresi kapandığında tabloyu yeniler.
+                    loadProductTable(null);
+                }
+            });
+        });
+
+        // Ürün filtreleme butonu olayı
+        this.btn_product_filter.addActionListener(e -> {
+            ArrayList<Product> filteredProducts = this.productController.filter(
+                    this.fld_f_product_name.getText(),
+                    this.fld_f_product_code.getText(),
+                    (Item) this.cmb_f_product_stock.getSelectedItem()
+            );
+            loadProductTable(filteredProducts);
+        });
+
+        // Filtre sıfırlama butonu olayı
+        this.btn_product_filter_reset.addActionListener(e -> {
+            this.fld_f_product_name.setText(null);
+            this.fld_f_product_code.setText(null);
+            this.cmb_f_product_stock.setSelectedItem(null);
+            loadProductTable(null);
+        });
+    }
+
+    private void loadProductPopupMenu() {
+        // Tabloya sağ tıklama olayı ekler
+        this.tbl_product.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int selectedRow = tbl_product.rowAtPoint(e.getPoint());
+                    tbl_product.setRowSelectionAllowed(true);
+                    tbl_product.setRowSelectionInterval(selectedRow, selectedRow);
+                }
+            }
+        });
+
+        // Popup menüye güncelleme seçeneği ekler
+        this.popup_product.add("Güncelle").addActionListener(e -> {
+            int selectedId = Integer.parseInt(this.tbl_product.getValueAt(this.tbl_product.getSelectedRow(), 0).toString());
+            ProductUI productUI = new ProductUI(this.productController.getById(selectedId));
+            productUI.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent windowEvent) {
+                    loadProductTable(null);
+                }
+            });
+        });
+
+        // Popup menüye silme seçeneği ekler
+        this.popup_product.add("Sil").addActionListener(e -> {
+            int selectedId = Integer.parseInt(this.tbl_product.getValueAt(this.tbl_product.getSelectedRow(), 0).toString());
+            if (Helper.confirm("sure")){
+                if (this.productController.delete(selectedId)) {
+                    Helper.showMessage("done");
+                    loadProductTable(null);
+                } else {
+                    Helper.showMessage("error");
+                }
+            }
+
+        });
+
+        this.tbl_product.setComponentPopupMenu(this.popup_product);
+
+    }
+
+    private void loadProductTable(ArrayList<Product> products) {
+        Object[] colNames = {"ID", "Ürün Adı", "Ürün Kodu", "Fiyat", "Stok"};
+
+        // Eğer filtre uygulanmamışsa tüm ürünleri getir
+        if (products == null) {
+            products = this.productController.findAll();
+        }
+
+        // Tabloyu temizler
+        DefaultTableModel clearModel = (DefaultTableModel) this.tbl_product.getModel();
+        clearModel.setRowCount(0);
+
+        this.tmdl_product.setColumnIdentifiers(colNames);
+
+        // Ürünleri tabloya ekler
+        for (Product product : products) {
+            Object[] rowObjects = {product.getId(), product.getName(), product.getCode(), product.getPrice(), product.getStock()};
+            this.tmdl_product.addRow(rowObjects);
+        }
+        this.tbl_product.setModel(this.tmdl_product);
+        this.tbl_product.getTableHeader().setReorderingAllowed(false);
+        this.tbl_product.getColumnModel().getColumn(0).setMaxWidth(50);
+        // Tabloyu etkin bırak böylece sağ tıklama popup menüsü çalışabilsin.
+        this.tbl_product.setEnabled(true);
     }
 
     /**
