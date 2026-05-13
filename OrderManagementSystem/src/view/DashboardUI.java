@@ -1,9 +1,11 @@
 package view;
 
+import business.BasketController;
 import business.CustomerController;
 import business.ProductController;
 import core.Helper;
 import core.Item;
+import entity.Basket;
 import entity.Customer;
 import entity.Product;
 import entity.User;
@@ -47,11 +49,22 @@ public class DashboardUI extends JFrame {
     private JLabel lbl_f_product_name;
     private JLabel lnl_f_product_code;
     private JLabel lbl_f_product_stock;
+    private JPanel pnl_basket;
+    private JPanel pnl_basket_top;
+    private JScrollPane scrl_basket;
+    private JComboBox<Item> cmb_basket_customer;
+    private JButton btn_basket_reset;
+    private JButton btn_basket_new;
+    private JLabel lbl_basket_price;
+    private JLabel lbl_basket_count;
+    private JTable tbl_basket;
     private User user;
     private final CustomerController customerController;
     private final ProductController productController;
+    private final BasketController basketController;
     private final DefaultTableModel tmdl_customer = new DefaultTableModel();
     private final DefaultTableModel tmdl_product = new DefaultTableModel();
+    private final DefaultTableModel tmdl_basket = new DefaultTableModel();
     private final JPopupMenu popup_customer = new JPopupMenu();
     private final JPopupMenu popup_product = new JPopupMenu();
 
@@ -64,6 +77,7 @@ public class DashboardUI extends JFrame {
         this.user = user;
         this.customerController = new CustomerController();
         this.productController = new ProductController();
+        this.basketController = new BasketController();
         if (user == null) {
             // Kullanıcı bilgisi yoksa hata gösterir ve pencereyi kapatır.
             Helper.showMessage("error");
@@ -89,13 +103,14 @@ public class DashboardUI extends JFrame {
             new LoginUI();
         });
 
-        // Tabloyu doldurur ve popup menu ile yeni müşteri ekleme işlemini hazırlar.
+        // CUSTOMER TAB
         loadCustomerTable(null);
         loadCustomerPopupMenu();
         loadCustomerButtonEvent();
         this.cmb_f_customer_type.setModel(new DefaultComboBoxModel<>(Customer.TYPE.values()));
         this.cmb_f_customer_type.setSelectedItem(null);
 
+        // PRODUCT TAB
         loadProductTable(null);
         loadProductPopupMenu();
         loadProductButtonEvent();
@@ -104,6 +119,64 @@ public class DashboardUI extends JFrame {
         this.cmb_f_product_stock.addItem(new Item(2, "Stokta yok"));
         this.cmb_f_product_stock.setSelectedItem(null);
 
+        // BASKET TAB
+        loadBasketTable();
+        loadBasketButtonEvent();
+        loadBasketCustomerCombo();
+        
+    }
+
+    private void loadBasketButtonEvent() {
+
+        this.btn_basket_reset.addActionListener(e -> {
+            if(Helper.confirm("sure")){
+                if (this.basketController.clear()) {
+                    Helper.showMessage("done");
+                    loadBasketTable();
+                } else {
+                    Helper.showMessage("error");
+                }
+            }
+        });
+    }
+
+    private void loadBasketCustomerCombo() {
+        ArrayList<Customer> customers = this.customerController.findAll();
+        this.cmb_basket_customer.removeAllItems();
+        for (Customer customer : customers) {
+            int comboKey = customer.getId();
+            String comboValue = customer.getName() + " (" + customer.getType() + ")";
+            this.cmb_basket_customer.addItem(new Item(comboKey, comboValue));
+        }
+
+        this.cmb_basket_customer.setSelectedItem(null);
+    }
+
+    private void loadBasketTable() {
+        Object[] colBasket = {"ID", "Ürün Adı", "Ürün Kodu", "Fiyat", "Stok"};
+
+        ArrayList<Basket> baskets = this.basketController.findAll();
+        // Tabloyu temizler
+        DefaultTableModel clearModel = (DefaultTableModel) this.tbl_basket.getModel();
+        clearModel.setRowCount(0);
+
+        this.tmdl_basket.setColumnIdentifiers(colBasket);
+        int totalPrice = 0;
+        // Sepet ürünleri tabloya ekler
+        for (Basket basket : baskets) {
+            Product product = this.productController.getById(basket.getProductId());
+            Object[] rowObjects = {basket.getId(), product.getName(), product.getCode(), product.getPrice(), product.getStock()};
+
+            this.tmdl_basket.addRow(rowObjects);
+            totalPrice += product.getPrice();
+        }
+        this.lbl_basket_price.setText(String.valueOf(totalPrice) + " TL");
+        this.lbl_basket_count.setText(String.valueOf(baskets.size()) + " Adet");
+
+        this.tbl_basket.setModel(this.tmdl_basket);
+        this.tbl_basket.getTableHeader().setReorderingAllowed(false);
+        this.tbl_basket.getColumnModel().getColumn(0).setMaxWidth(50);
+        this.tbl_basket.setEnabled(false); // Sepet tablosunu düzenlenemez yapar
     }
 
     private void loadProductButtonEvent() {
@@ -151,6 +224,22 @@ public class DashboardUI extends JFrame {
             }
         });
 
+        this.popup_product.add("Sepete Ekle").addActionListener(e -> {
+            int selectedId = Integer.parseInt(this.tbl_product.getValueAt(this.tbl_product.getSelectedRow(), 0).toString());
+            Product basketProduct = this.productController.getById(selectedId);
+            if (basketProduct.getStock() > 0) {
+                Basket basket = new Basket(basketProduct.getId());
+                if (this.basketController.save(basket)) {
+                    Helper.showMessage("done");
+                    loadBasketTable();
+                } else {
+                    Helper.showMessage("error");
+                }
+            } else {
+                Helper.showMessage("Bu ürün stokta yok!");
+            }
+        });
+
         // Popup menüye güncelleme seçeneği ekler
         this.popup_product.add("Güncelle").addActionListener(e -> {
             int selectedId = Integer.parseInt(this.tbl_product.getValueAt(this.tbl_product.getSelectedRow(), 0).toString());
@@ -159,6 +248,7 @@ public class DashboardUI extends JFrame {
                 @Override
                 public void windowClosed(WindowEvent windowEvent) {
                     loadProductTable(null);
+                    loadBasketTable();
                 }
             });
         });
@@ -170,6 +260,7 @@ public class DashboardUI extends JFrame {
                 if (this.productController.delete(selectedId)) {
                     Helper.showMessage("done");
                     loadProductTable(null);
+                    loadBasketTable();
                 } else {
                     Helper.showMessage("error");
                 }
@@ -218,6 +309,7 @@ public class DashboardUI extends JFrame {
                 public void windowClosed(WindowEvent windowEvent) {
                     // Müşteri ekleme penceresi kapandığında tabloyu yeniler.
                     loadCustomerTable(null);
+                    loadBasketCustomerCombo();
                 }
             });
 
@@ -264,6 +356,7 @@ public class DashboardUI extends JFrame {
                 @Override
                 public void windowClosed(WindowEvent windowEvent) {
                     loadCustomerTable(null);
+                    loadBasketCustomerCombo();
                 }
             });
         });
@@ -274,6 +367,7 @@ public class DashboardUI extends JFrame {
                 if (this.customerController.delete(selectedId)) {
                     Helper.showMessage("done");
                     loadCustomerTable(null);
+                    loadBasketCustomerCombo();
                 } else {
                     Helper.showMessage("error");
                 }

@@ -3,5 +3,12 @@
     "java.project.outputPath": "bin",
     "java.project.referencedLibraries": [
         "lib/**/*.jar"
-    ]
+    ],
+    "[java]": {
+        "editor.formatOnSave": true
+    },
+    "java.completion.enabled": true,
+    "java.signatureHelp.enabled": true,
+    "java.completion.overwrite": true,
+    "java.completion.guessMethodArguments": false
 }
