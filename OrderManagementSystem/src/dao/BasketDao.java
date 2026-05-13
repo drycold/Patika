@@ -8,6 +8,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+/**
+ * Sepet kayıtları için veri erişim sınıfı.
+ * Basket tablosuna ürün ekleme, listeleme ve temizleme işlemlerini uygular.
+ */
 public class BasketDao {
     private final Connection connection;
     private final ProductDao productDao = new ProductDao();
@@ -16,6 +20,11 @@ public class BasketDao {
         this.connection = Database.getInstance();
     }
 
+    /**
+     * Veritabanına yeni bir ürün sepete ekler.
+     * @param productId Sepete eklenecek ürün ID'si
+     * @return Başarılıysa true, hatada false
+     */
     public boolean save(int productId) {
         String query = "INSERT INTO basket (product_id) VALUES (?)";
 
@@ -32,8 +41,8 @@ public class BasketDao {
     }
 
     /**
-     * Retrieves all basket items from the database.
-     * @return ArrayList of Basket objects containing all basket entries
+     * Veritabanından tüm sepet öğelerini getirir.
+     * @return Sepet içindeki Basket kayıtlarının listesi
      */
     public ArrayList<Basket> findAll() {
         String query = "SELECT * FROM basket";
@@ -65,8 +74,8 @@ public class BasketDao {
     }
 
     /**
-     * Clears all items from the basket by deleting all records from the database.
-     * @return true if the operation was successful, false otherwise
+     * Sepetteki tüm ürünleri veritabanından siler.
+     * @return Silme işlemi başarılıysa true
      */
     public boolean clear() {
         String query = "DELETE FROM basket";
@@ -81,6 +90,12 @@ public class BasketDao {
         return true;
     }
 
+    /**
+     * ResultSet satırını Basket nesnesine dönüştürür.
+     * @param rs Veritabanı sorgusunun ResultSet sonucu
+     * @return Dönüştürülmüş Basket nesnesi
+     * @throws SQLException SQL sorgusu sırasında hata oluşursa
+     */
     public Basket match(ResultSet rs) throws SQLException {
         Basket basket = new Basket();
         basket.setId(rs.getInt("id"));

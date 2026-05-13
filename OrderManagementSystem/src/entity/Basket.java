@@ -1,5 +1,9 @@
 package entity;
 
+/**
+ * Sepet içindeki ürün kaydını temsil eden entity sınıfı.
+ * Ürün ID'si ve varsa ilişkili Product nesnesini tutar.
+ */
 public class Basket {
     private int id;
     private int productId;

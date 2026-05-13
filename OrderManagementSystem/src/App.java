@@ -3,6 +3,7 @@ import business.UserController;
 import core.Helper;
 import entity.User;
 import view.DashboardUI;
+import view.LoginUI;
 
 /**
  * Uygulamanın giriş sınıfı. Bu sınıfın main() metodu programın başlangıç noktasını sağlar.
@@ -20,11 +21,6 @@ public class App {
         // Uygulama için Nimbus görünümünü uygular.
         Helper.setThemes();
 
-        // Sabit kullanıcı bilgileriyle giriş denemesi yapar.
-        UserController userController = new UserController();
-        User user = userController.findByLogin("rmzn@patika.dev", "123123");
-
-        // Giriş başarılıysa Dashboard ekranını açar.
-        DashboardUI dashboardUI = new DashboardUI(user);
+        LoginUI loginUI = new LoginUI();
     }
 }

@@ -1,16 +1,19 @@
 package view;
 
 import business.BasketController;
+import business.CartController;
 import business.CustomerController;
 import business.ProductController;
 import core.Helper;
 import core.Item;
 import entity.Basket;
+import entity.Cart;
 import entity.Customer;
 import entity.Product;
 import entity.User;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -58,13 +61,19 @@ public class DashboardUI extends JFrame {
     private JLabel lbl_basket_price;
     private JLabel lbl_basket_count;
     private JTable tbl_basket;
+    private JTable tbl_cart;
+    private JScrollPane scrl_cart;
     private User user;
     private final CustomerController customerController;
     private final ProductController productController;
     private final BasketController basketController;
+    private final CartController cartController;
+
     private final DefaultTableModel tmdl_customer = new DefaultTableModel();
     private final DefaultTableModel tmdl_product = new DefaultTableModel();
     private final DefaultTableModel tmdl_basket = new DefaultTableModel();
+    private final DefaultTableModel tmdl_cart = new DefaultTableModel();
+
     private final JPopupMenu popup_customer = new JPopupMenu();
     private final JPopupMenu popup_product = new JPopupMenu();
 
@@ -78,6 +87,8 @@ public class DashboardUI extends JFrame {
         this.customerController = new CustomerController();
         this.productController = new ProductController();
         this.basketController = new BasketController();
+        this.cartController = new CartController();
+        
         if (user == null) {
             // Kullanıcı bilgisi yoksa hata gösterir ve pencereyi kapatır.
             Helper.showMessage("error");
@@ -123,9 +134,43 @@ public class DashboardUI extends JFrame {
         loadBasketTable();
         loadBasketButtonEvent();
         loadBasketCustomerCombo();
-        
+
+        // CART TAB
+        loadCartTable();
+
     }
 
+    /**
+     * Tüm sipariş kayıtlarını Cart tablosuna yükler.
+     * Tabloyu önce temizler, sonra veritabanındaki tüm kayıtları ekler.
+     */
+    private void loadCartTable() {
+        Object[] colCart = {"ID", "Müşteri Adı", "Ürün Adı", "Fiyat", "Sipariş Tarihi", "Not"};
+
+        ArrayList<Cart> carts = this.cartController.findAll();
+        // Tabloyu temizler
+        DefaultTableModel clearModel = (DefaultTableModel) this.tbl_cart.getModel();
+        clearModel.setRowCount(0);
+
+        this.tmdl_cart.setColumnIdentifiers(colCart);
+        // Siparişleri tabloya ekler
+        for (Cart cart : carts) {
+            Customer customer = this.customerController.getById(cart.getCustomerId());
+            Product product = this.productController.getById(cart.getProductId());
+            Object[] rowObjects = {cart.getId(), customer.getName(), product.getName(), cart.getPrice(), cart.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")), cart.getNote()};
+
+            this.tmdl_cart.addRow(rowObjects);
+        }
+        this.tbl_cart.setModel(this.tmdl_cart);
+        this.tbl_cart.getTableHeader().setReorderingAllowed(false);
+        this.tbl_cart.getColumnModel().getColumn(0).setMaxWidth(50);
+        this.tbl_cart.setEnabled(false);
+    }
+
+    /**
+     * Sepet sekmesi için buton olaylarını bağlar.
+     * Bu metot, sepeti temizleme ve sipariş oluşturma işlemlerinin kontrolünü sağlar.
+     */
     private void loadBasketButtonEvent() {
 
         this.btn_basket_reset.addActionListener(e -> {
@@ -138,8 +183,36 @@ public class DashboardUI extends JFrame {
                 }
             }
         });
+
+        this.btn_basket_new.addActionListener(e -> {
+            Item selectedCustomer = (Item) cmb_basket_customer.getSelectedItem();
+            if (selectedCustomer == null) {
+                Helper.showMessage("Lütfen bir müşteri seçiniz.");
+            } else {
+                Customer customer = this.customerController.getById(selectedCustomer.getKey());
+                ArrayList<Basket> baskets = this.basketController.findAll();
+                if(customer.getId() == 0){
+                    Helper.showMessage("Böyle bir müşteri bulunamadı.");
+                } else if (baskets.isEmpty()) {
+                     Helper.showMessage("Sepetiniz boş. Lütfen ürün ekleyiniz.");
+                } else {
+                    CartUI cartUI = new CartUI(customer);
+                    cartUI.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosed(WindowEvent windowEvent) {
+                            loadBasketTable();
+                            loadProductTable(null);
+                        }
+                    });
+                }
+            }
+        });
     }
 
+    /**
+     * Sepet için müşteri seçimi açılır listesini doldurur.
+     * Mevcut müşterileri ComboBox'a ekler ve varsayılan seçimi kaldırır.
+     */
     private void loadBasketCustomerCombo() {
         ArrayList<Customer> customers = this.customerController.findAll();
         this.cmb_basket_customer.removeAllItems();
@@ -152,6 +225,10 @@ public class DashboardUI extends JFrame {
         this.cmb_basket_customer.setSelectedItem(null);
     }
 
+    /**
+     * Sepet içeriğini yükler ve tabloya yansıtır.
+     * Toplam fiyat ve ürün adedi bilgisini de günceller.
+     */
     private void loadBasketTable() {
         Object[] colBasket = {"ID", "Ürün Adı", "Ürün Kodu", "Fiyat", "Stok"};
 
@@ -179,6 +256,10 @@ public class DashboardUI extends JFrame {
         this.tbl_basket.setEnabled(false); // Sepet tablosunu düzenlenemez yapar
     }
 
+    /**
+     * Ürün sekmesi üzerindeki buton olaylarını bağlar.
+     * Bu metot, yeni ürün ekleme, filtreleme ve filtreyi temizleme işlemlerini yönetir.
+     */
     private void loadProductButtonEvent() {
         // Yeni ürün ekleme butonu olayı
         this.btn_product_new.addActionListener(e -> {
@@ -272,6 +353,11 @@ public class DashboardUI extends JFrame {
 
     }
 
+    /**
+     * Ürünleri tabloya yükler.
+     * Parametre olarak filtrelenmiş ürün listesi alır, null ise tüm ürünleri getirir.
+     * @param products Görüntülenecek ürün listesi veya null
+     */
     private void loadProductTable(ArrayList<Product> products) {
         Object[] colNames = {"ID", "Ürün Adı", "Ürün Kodu", "Fiyat", "Stok"};
 
@@ -299,7 +385,8 @@ public class DashboardUI extends JFrame {
     }
 
     /**
-     * Yeni müşteri ekleme butonuna tıklama işlemini ayarlar.
+     * Müşteri sekmesi için buton olaylarını tanımlar.
+     * Yeni müşteri ekleme, filtreleme ve filtreyi sıfırlama işlemlerini yönetir.
      */
     private void loadCustomerButtonEvent() {
         this.btn_customer_new.addActionListener(e -> {
@@ -334,6 +421,10 @@ public class DashboardUI extends JFrame {
 
     /**
      * Müşteri tablosu için sağ tıklama popup menüsünü hazırlar.
+     */
+    /**
+     * Müşteri tablosu için sağ tıklama menüsünü hazırlar.
+     * Menüde müşteri güncelleme ve silme işlemleri yer alır.
      */
     private void loadCustomerPopupMenu() {
 
