@@ -313,6 +313,7 @@ public class DashboardUI extends JFrame {
                 if (this.basketController.save(basket)) {
                     Helper.showMessage("done");
                     loadBasketTable();
+                    loadCartTable();
                 } else {
                     Helper.showMessage("error");
                 }
